@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String   @id @default(cuid())
+  clerkUserId             String   @unique
+  email                   String   @unique
+  firstName               String?
+  lastName                String?
+  encryptedReplicateApiKey String?
+  subscriptionStatus      String   @default("inactive") // "active", "inactive", "trial"
+  subscriptionTier        String   @default("free")     // "free", "pro", "enterprise"
+  subscriptionEndDate     DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  // Relations
+  transactions Transaction[]
+  
+  @@map("users")
+}
+
+model Transaction {
+  id                String   @id @default(cuid())
+  userId            String
+  uniqueAmount      Int      // e.g., 50123 (50000 + 123 unique digits)
+  baseAmount        Int      @default(50000)
+  status            String   @default("pending") // "pending", "pending_admin_verification", "approved", "rejected"
+  subscriptionTier  String   // "pro", "enterprise"
+  paymentMethod     String   @default("manual_transfer")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  approvedAt        DateTime?
+  approvedByAdmin   String?  // Admin email who approved
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("transactions")
+}
+
+model ApiUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  apiType   String   // "prompt_generation", "video_generation"
+  model     String   // "claude-3-sonnet", "veo-3"
+  inputSize Int?     // Character count for prompts, file size for images
+  cost      Float?   // Cost in USD (if tracked)
+  success   Boolean
+  createdAt DateTime @default(now())
+  
+  @@map("api_usage")
+}
+
+model AdminSettings {
+  id                String   @id @default(cuid())
+  key               String   @unique
+  value             String
+  description       String?
+  updatedAt         DateTime @updatedAt
+  
+  @@map("admin_settings")
+}
+
+// Initial admin settings data
+// INSERT INTO admin_settings (key, value, description) VALUES 
+// ('bank_name', 'Bank BCA', 'Bank name for manual transfers'),
+// ('bank_account_number', '1234567890', 'Bank account number'),
+// ('bank_account_name', 'PT Hyper Video Indonesia', 'Account holder name'),
+// ('pro_monthly_price', '50000', 'Pro monthly subscription price in IDR');
