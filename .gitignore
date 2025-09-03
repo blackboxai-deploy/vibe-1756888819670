@@ -23,9 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Local env files
-.env
 .env*.local
-.env.production
 
 # Vercel
 .vercel
@@ -39,7 +37,6 @@ next-env.d.ts
 /prisma/dev.db*
 
 # IDE
-.vscode/
 .idea/
 
 # OS
@@ -72,3 +69,4 @@ package-lock.json
 # Build artifacts
 /dist
 /.cache
+config.bat
